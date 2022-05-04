@@ -93,3 +93,26 @@ ggplot(flights, aes(x = fct_infreq(carrier))) +
 
 ggplot(flights, aes(x = fct_rev(fct_infreq(carrier)))) +
   geom_bar()
+
+ggplot(flights, aes(x = carrier)) +
+  geom_bar()
+
+ggplot(flights, aes(x = carrier, fill = origin)) +
+  geom_bar()
+
+ggplot(flights, aes(x = carrier, color = origin)) +
+  geom_bar()
+
+ggplot(flights, aes(x = carrier), fill = origin) +
+  geom_bar()
+
+ggplot(flights, aes(x = carrier, fill = origin)) +
+  geom_bar(position = "dodge")
+
+ggplot(flights, aes(x = carrier, fill = origin)) +
+  geom_bar(position = position_dodge(preserve = "single"))
+
+ggplot(flights, aes(x = carrier)) +
+  geom_bar() +
+  facet_wrap(~origin, ncol=1)
+
