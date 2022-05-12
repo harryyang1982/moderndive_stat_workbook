@@ -144,3 +144,11 @@ virtual_prop_red_50 %>%
 # n = 100
 virtual_prop_red_100 %>% 
   summarize(sd = sd(prop_red))
+
+# 7.3 Sampling framework
+
+# 7.3.2 Statistical definitions
+bowl %>% 
+  summarize(sum_red = sum(color == "red"),
+            sum_not_red = length(color) - sum_red)
+0
