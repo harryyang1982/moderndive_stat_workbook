@@ -203,3 +203,41 @@ visualize(bootstrap_distribution) +
   shade_confidence_interval(endpoints = standard_error_ci)
 
 # 8.5 Interpreting confidence intervals
+bowl %>% 
+  summarize(p_red = mean(color == "red"))
+
+bowl
+bowl_sample_1 %>% 
+  summarize(p_red = mean(color == "red"))
+
+sample_1_bootstrap <- bowl_sample_1 %>% 
+  specify(response = color, success = "red") %>% 
+  generate(reps = 1000, type = "bootstrap") %>% 
+  calculate("prop")
+
+sample_1_bootstrap
+
+percentile_ci_1 <- sample_1_bootstrap %>% 
+  get_ci(level = 0.95, type = "percentile")
+
+percentile_ci_1
+sample_1_bootstrap %>% 
+  visualize(bins = 15) +
+  shade_confidence_interval(endpoints = percentile_ci_1) +
+  geom_vline(xintercept = 0.375, linetype = "dashed")
+
+bowl_sample_2 <- bowl %>% rep_sample_n(size = 50)
+bowl_sample_2
+
+sample_2_bootstrap <- bowl_sample_2 %>% 
+  specify(response = color,
+          success = "red") %>% 
+  generate(reps = 1000,
+           type = "bootstrap") %>% 
+  calculate(stat = "prop")
+
+sample_2_bootstrap
+
+percentile_ci_2 <- sample_2_bootstrap %>% 
+  get_ci(level = 0.95, type = "percentile")
+percentile_ci_2
