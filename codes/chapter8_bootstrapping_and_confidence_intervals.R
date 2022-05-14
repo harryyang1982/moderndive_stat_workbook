@@ -113,3 +113,93 @@ virtual_resampled_means %>%
   summarize(mean_of_means = mean(mean_year))
 
 # 8.3 Understanding confidence intervals
+virtual_resampled_means %>% 
+  summarize(SE = sd(mean_year))
+
+# 8.4 Constructing confidence intervals
+## 8.4.1 Original workflow
+pennies_sample %>% 
+  rep_sample_n(size = 50, replace = TRUE, reps = 1000)
+
+pennies_sample %>% 
+  rep_sample_n(size = 50, replace = TRUE, reps = 1000) %>% 
+  group_by(replicate) %>% 
+  summarize(mean_year = mean(year))
+
+## 8.4.2 infer package workflow
+pennies_sample %>% 
+  summarize(stat = mean(year))
+
+pennies_sample %>% 
+  specify(response = year) %>% 
+  calculate(stat="mean")
+
+pennies_sample %>% 
+  specify(response = year)
+
+pennies_sample %>% 
+  specify(formula = year ~ NULL)
+
+pennies_sample %>% 
+  specify(response = year) %>% 
+  generate(reps = 1000, type = "bootstrap")
+
+# infer workflow:
+pennies_sample %>% 
+  specify(response = year) %>% 
+  generate(reps = 1000)
+
+# Original workflow
+pennies_sample %>% 
+  rep_sample_n(size = 50, replace = TRUE,
+               reps = 1000)
+
+bootstrap_distribution <- pennies_sample %>% 
+  specify(response = year) %>% 
+  generate(reps = 1000) %>% 
+  calculate(stat = "mean")
+
+bootstrap_distribution %>% 
+  .[['stat']] %>% mean()
+
+# infer workflow
+pennies_sample %>% 
+  specify(response = year) %>% 
+  generate(reps = 1000, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+
+# Original workflow:
+pennies_sample %>% 
+  rep_sample_n(size = 50, replace = TRUE,
+               reps = 1000) %>% 
+  group_by(replicate) %>% 
+  summarize(stat = mean(year))
+
+# infer workflow:
+visualize(bootstrap_distribution)
+
+# Original workflow:
+ggplot(bootstrap_distribution, aes(x = stat)) +
+  geom_histogram()
+
+## 8.4.3 Percentile method with infer
+percentile_ci <- bootstrap_distribution %>% 
+  get_confidence_interval(level = 0.95, type = "percentile")
+percentile_ci
+
+visualize(bootstrap_distribution) +
+  shade_confidence_interval(endpoints = percentile_ci)
+
+visualize(bootstrap_distribution) +
+  shade_ci(endpoints = percentile_ci, color = "hotpink", fill = "khaki")
+
+## 8.4.4 Standard error method with infer
+x_bar <- 1995.44
+
+standard_error_ci <- bootstrap_distribution %>% 
+  get_confidence_interval(type = "se", point_estimate = x_bar)
+
+visualize(bootstrap_distribution) +
+  shade_confidence_interval(endpoints = standard_error_ci)
+
+# 8.5 Interpreting confidence intervals
