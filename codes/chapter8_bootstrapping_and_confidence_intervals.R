@@ -241,3 +241,111 @@ sample_2_bootstrap
 percentile_ci_2 <- sample_2_bootstrap %>% 
   get_ci(level = 0.95, type = "percentile")
 percentile_ci_2
+
+# 8.6 Case Study: Is yawning contagious?
+
+## 8.6.1 Mythbusters study data
+mythbusters_yawn
+
+mythbusters_yawn %>% 
+  group_by(group, yawn) %>% 
+  summarize(count = n())
+
+## 8.6.2 Sampling Scenario
+
+## 8.6.3 Constructing the confidence interval
+mythbusters_yawn %>% 
+  specify(formula = yawn ~ group, 
+          success = "yes")
+
+first_six_rows <- head(mythbusters_yawn)
+first_six_rows
+
+first_six_rows %>% 
+  sample_n(size = 6, replace = TRUE)
+
+mythbusters_yawn %>% 
+  specify(formula = yawn ~ group, success = "yes") %>% 
+  generate(reps = 1000, type = "bootstrap")
+
+mythbusters_yawn %>% 
+  specify(formula = yawn ~ group, success = "yes") %>% 
+  generate(reps = 1000, type = "bootstrap") %>% 
+  calculate(stat = "diff in props")
+
+bootstrap_distribution_yawning <- mythbusters_yawn %>% 
+  specify(formula = yawn ~ group, success = "yes") %>% 
+  generate(reps = 1000, type = "bootstrap") %>% 
+  calculate(stat = "diff in props", order = c("seed", "control"))
+
+bootstrap_distribution_yawning %>% 
+  visualize() +
+  geom_vline(xintercept = 0)
+
+bootstrap_distribution_yawning %>% 
+  get_confidence_interval(type = "percentile", level = 0.95)
+
+obs_diff_in_props <- mythbusters_yawn %>% 
+  specify(formula = yawn ~ group, success = "yes") %>% 
+  calculate(stat = "diff in props", order = c("seed", "control"))
+obs_diff_in_props
+
+myth_ci_se <- bootstrap_distribution_yawning %>% 
+  get_confidence_interval(type = "se", point_estimate = obs_diff_in_props)
+myth_ci_se
+
+visualize(bootstrap_distribution_yawning) +
+  geom_vline(xintercept = myth_ci_se$lower_ci) +
+  geom_vline(xintercept = myth_ci_se$upper_ci)
+
+# 8.7. Conclusion
+# 8.7.1 Sampling distribution vs Bootstrap distribution
+
+## sampling
+virtual_samples <- bowl %>% 
+  rep_sample_n(size = 50, reps = 1000)
+sampling_distribution <- virtual_samples %>% 
+  group_by(replicate) %>% 
+  summarize(prop_red = mean(color == "red"))
+ggplot(sampling_distribution, aes(x = prop_red)) +
+  geom_histogram(binwidth = 0.05, boundary = 0.4, color = "white") +
+  labs(x = "Proportion of 50 balls that were red",
+       title = "Sampling distribution")
+
+sampling_distribution %>% summarize(se = sd(prop_red))
+
+## bootstrap
+bootstrap_distribution <- bowl_sample_1 %>% 
+  specify(response = color, success = "red") %>% 
+  generate(reps = 1000, type = "bootstrap") %>% 
+  calculate(stat = "prop")
+
+bootstrap_distribution %>% 
+  visualize()
+
+bootstrap_distribution %>% summarize(se = sd(stat))
+
+bowl %>% 
+  summarize(prop_red = mean(color == "red"))
+sqrt(0.42 * (1 - 0.42) / 50)
+
+# Confidence intervals based on 33 tactile samples
+conf_ints <- tactile_prop_red %>% 
+  rename(p_hat = prop_red) %>% 
+  mutate(
+    n = 50,
+    SE = sqrt(p_hat * (1 - p_hat) / n),
+    MoE = 1.96 * SE,
+    lower_ci = p_hat - MoE,
+    upper_ci = p_hat + MoE,
+    captured = !(upper_ci < 0.375 | lower_ci > 0.375)
+  )
+conf_ints
+
+ggplot(conf_ints, aes(y = group, 
+                      xmin = lower_ci,
+                      xmax = upper_ci)) +
+  geom_errorbarh(aes(color = captured)) +
+  geom_point(aes(x = p_hat,
+                 y = group)) +
+  geom_vline(xintercept = 0.375)
