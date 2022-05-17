@@ -119,3 +119,111 @@ se_ci
 visualize(bootstrap_distribution) +
   shade_confidence_interval(endpoints = se_ci)
 
+# 9.4 Interpreting hypothesis tests
+## 9.4.2 Types of errors
+
+## 9.4.3 How do we choose alpha?
+
+# 9.5 Case Study: Are action or romance movies rated higher?
+
+## 9.5.1 IMDb ratings data
+movies
+
+movies_sample
+ggplot(movies_sample, aes(x = genre, y = rating)) +
+  geom_boxplot() +
+  labs(y = "IMDb rating")
+
+movies_sample %>% 
+  group_by(genre) %>% 
+  summarize(n = n(), mean_rating = mean(rating), std_dev = sd(rating))
+
+## 9.5.2 Sampling scenario
+
+# 9.5.3 Conducting the hypothesis test
+
+movies_sample %>% 
+  specify(formula = rating ~ genre)
+
+movies_sample %>% 
+  specify(formula = rating ~ genre) %>% 
+  hypothesize(null = "independence") %>% 
+  generate(reps = 1000, type = "permute") %>% 
+  View()
+
+null_distribution_movies <- movies_sample %>% 
+  specify(formula = rating ~ genre) %>% 
+  hypothesize(null = "independence") %>% 
+  generate(reps = 1000, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("Action", "Romance"))
+
+obs_diff_means <- movies_sample %>% 
+  specify(formula = rating ~ genre) %>% 
+  calculate(stat = "diff in means", order = c("Action", "Romance"))
+obs_diff_means
+
+visualize(null_distribution_movies, bins = 10) +
+  shade_p_value(obs_stat = obs_diff_means, direction = "both")
+
+null_distribution_movies %>% 
+  get_p_value(obs_stat = obs_diff_means, direction = "both")
+
+# 9.6 Conclusion
+movies_sample %>% 
+  group_by(genre) %>% 
+  summarize(n = n(), mean_rating = mean(rating), std_dev = sd(rating))
+
+# Construct null distribution of xbar_a - xbar_m:
+null_distribution_movies <- movies_sample %>% 
+  specify(formula = rating ~ genre) %>% 
+  hypothesize(null = 'independence') %>% 
+  generate(reps = 1000, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("Action", "Romance"))
+p1 <- visualize(null_distribution_movies, bins = 10)
+
+null_distribution_movies_t <- movies_sample %>% 
+  specify(formula = rating ~ genre) %>% 
+  hypothesize(null = "independence") %>% 
+  generate(reps = 1000, type = "permute") %>% 
+  # Notice we switched stat from "diff in means" to "t"
+  calculate(stat = "t", order = c("Action", "Romance"))
+
+p2 <- visualize(null_distribution_movies_t, bins = 10)
+
+library(gridExtra)
+grid.arrange(p1, p2, ncol = 2)
+
+visualize(null_distribution_movies_t, bins = 10, method = "both")
+
+obs_two_sample_t <- movies_sample %>% 
+  specify(formula = rating ~ genre) %>% 
+  calculate(stat = "t", order = c("Action", "Romance"))
+
+obs_two_sample_t
+visualize(null_distribution_movies_t, method = "both") +
+  shade_p_value(obs_stat = obs_two_sample_t, direction = "both")
+
+null_distribution_movies_t %>% 
+  get_p_value(obs_stat = obs_two_sample_t, direction = "both")
+
+data("movies")
+data("movies_sample")
+
+## 9.6.2 When inference is not needed
+
+flights_sample <- flights %>% 
+  filter(carrier %in% c("HA", "AS"))
+
+ggplot(flights_sample, aes(x = carrier, y = air_time)) +
+  geom_boxplot() +
+  labs(x = "Carrier", y = "Air Time")
+
+flights_sample %>% 
+  group_by(carrier, dest) %>% 
+  summarize(n = n(), mean_time = mean(air_time, na.rm = TRUE))
+
+## 9.6.3 Problems with p-values
+
+## 9.6.5 What's to come
+score_model <- lm(score ~ bty_avg, data = evals)
+get_regression_table(score_model)
