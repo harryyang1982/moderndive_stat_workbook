@@ -282,6 +282,8 @@ bootstrap_distribution_yawning %>%
   visualize() +
   geom_vline(xintercept = 0)
 
+bootstrap_distribution_yawning %>% .$stat %>% mean()
+
 bootstrap_distribution_yawning %>% 
   get_confidence_interval(type = "percentile", level = 0.95)
 
